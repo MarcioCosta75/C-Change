@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "29028978889",
+    "firebase_url": "https://c-change-b1ade-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "c-change-b1ade",
+    "storage_bucket": "c-change-b1ade.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:29028978889:android:cc512b9c1bca4e45e53d18",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.com.unity.template.mobile2D"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "29028978889-qng8iac1a6tlhk763bljifud8rkorbf1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDwYwIdeKmygfdtNV5NsIamImthRuXdV8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "29028978889-qng8iac1a6tlhk763bljifud8rkorbf1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
