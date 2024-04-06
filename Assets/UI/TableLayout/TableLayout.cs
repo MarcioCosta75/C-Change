@@ -302,19 +302,5 @@ namespace UI.Tables
                     DestroyImmediate(row.gameObject);
             }
         }
-
-        // Method to set the row background color dynamically
-        public void SetRowBackgroundColor(Color color)
-        {
-            RowBackgroundColor = color;
-            UpdateLayout();
-        }
-
-        // Method to set the cell background color dynamically
-        public void SetCellBackgroundColor(Color color)
-        {
-            CellBackgroundColor = color;
-            UpdateLayout();
-        }
     }
 }

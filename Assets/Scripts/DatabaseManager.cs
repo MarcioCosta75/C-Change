@@ -29,7 +29,7 @@ public class DatabaseManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        userID = SystemInfo.deviceUniqueIdentifier;
+        //userID = SystemInfo.deviceUniqueIdentifier;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
@@ -39,7 +39,8 @@ public class DatabaseManager : MonoBehaviour
         User newUser = new User(nomeField.text, dataNascimentoField.text, sexoField.text, moradaField.text, cartaConducaoField.text, especialidadeField.text, emailField.text);
         string json = JsonUtility.ToJson(newUser);
 
-        dbReference.Child("Voluntarios").Child(userID).SetRawJsonValueAsync(json);
+        // Usando Push() para criar um novo usuário com um ID único
+        dbReference.Child("Voluntarios").Push().SetRawJsonValueAsync(json);
     }
 
     public IEnumerator Getnome(Action<string> OnCallback)
@@ -48,7 +49,7 @@ public class DatabaseManager : MonoBehaviour
 
         yield return new WaitUntil(predicate: () => userNameData.IsCompleted);
 
-        if(userNameData != null)
+        if (userNameData != null)
         {
             DataSnapshot snapshot = userNameData.Result;
 
@@ -177,5 +178,40 @@ public class DatabaseManager : MonoBehaviour
         {
             emailText.text = "Email:" + email;
         }));
+    }
+
+    public void Updatenome()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("nome").SetValueAsync(nomeField.text);
+    }
+
+    public void Updatedata_nascimento()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("data_nascimento").SetValueAsync(dataNascimentoField.text);
+    }
+
+    public void Updatesexo()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("sexo").SetValueAsync(sexoField.text);
+    }
+
+    public void Updatemorada()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("morada").SetValueAsync(moradaField.text);
+    }
+
+    public void UpdatecartaConducao()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("carta_conducao").SetValueAsync(cartaConducaoField.text);
+    }
+
+    public void Updateespecialidade()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("especialidade").SetValueAsync(especialidadeField.text);
+    }
+
+    public void Updateemail()
+    {
+        dbReference.Child("Voluntarios").Child(userID).Child("email").SetValueAsync(emailField.text);
     }
 }
