@@ -122,8 +122,10 @@ public class FirebaseAuthManager : MonoBehaviour
             Debug.LogFormat("{0} You Are Successfully Logged In", user.DisplayName);
 
             References.userName = user.DisplayName;
-            UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
         }
+
+        DatabaseManager.userID = user.UserId; // Armazenar o userID para uso posterior
     }
 
     public void Register()
@@ -227,7 +229,9 @@ public class FirebaseAuthManager : MonoBehaviour
                     Debug.Log("Registration Successful Welcome " + user.DisplayName);
                     UIManager.Instance.OpenLoginPanel();
                 }
-                
+
+                DatabaseManager.userID = user.UserId; // Armazenar o userID para uso posterior
+
             }
         }
     }
