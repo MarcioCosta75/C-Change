@@ -1,8 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Firebase;
 using Firebase.Auth;
+using Firebase.Firestore;
+using TMPro;
 
 public class FirebaseAuthManager : MonoBehaviour
 {
@@ -15,16 +18,23 @@ public class FirebaseAuthManager : MonoBehaviour
     // Login Variables
     [Space]
     [Header("Login")]
-    public InputField emailLoginField;
-    public InputField passwordLoginField;
+    public TMP_InputField emailLoginField;
+    public TMP_InputField passwordLoginField;
 
     // Registration Variables
     [Space]
     [Header("Registration")]
-    public InputField nameRegisterField;
-    public InputField emailRegisterField;
-    public InputField passwordRegisterField;
-    public InputField confirmPasswordRegisterField;
+    public TMP_InputField nameRegisterField;
+    public TMP_InputField emailRegisterField;
+    public TMP_InputField passwordRegisterField;
+    public TMP_InputField confirmPasswordRegisterField;
+    // Registration Additional Fields
+    [Header("Registration Additional Fields")]
+    public TMP_InputField birthDateRegisterField;
+    public TMP_InputField genderRegisterField;
+    public TMP_InputField addressRegisterField;
+    public TMP_InputField drivingLicenseRegisterField;
+    public TMP_InputField specialtyRegisterField;
 
     private void Awake()
     {
@@ -53,7 +63,6 @@ public class FirebaseAuthManager : MonoBehaviour
         AuthStateChanged(this, null);
     }
 
-    // Track state changes of the auth object.
     void AuthStateChanged(object sender, System.EventArgs eventArgs)
     {
         if (auth.CurrentUser != user)
@@ -117,31 +126,33 @@ public class FirebaseAuthManager : MonoBehaviour
         }
         else
         {
-            user = loginTask.Result.User; // Updated this line
+            user = loginTask.Result.User;
 
             Debug.LogFormat("{0} You Are Successfully Logged In", user.DisplayName);
 
             References.userName = user.DisplayName;
-            UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("HomePage");
         }
     }
 
     public void Register()
     {
-        StartCoroutine(RegisterAsync(nameRegisterField.text, emailRegisterField.text, passwordRegisterField.text, confirmPasswordRegisterField.text));
+        StartCoroutine(RegisterAsync(
+            nameRegisterField.text,
+            emailRegisterField.text,
+            passwordRegisterField.text,
+            confirmPasswordRegisterField.text,
+            birthDateRegisterField.text,
+            genderRegisterField.text,
+            addressRegisterField.text,
+            drivingLicenseRegisterField.text,
+            specialtyRegisterField.text
+        ));
     }
 
-    private IEnumerator RegisterAsync(string name, string email, string password, string confirmPassword)
+    private IEnumerator RegisterAsync(string name, string email, string password, string confirmPassword, string birthDate, string gender, string address, string drivingLicense, string specialty)
     {
-        if (name == "")
-        {
-            Debug.LogError("User Name is empty");
-        }
-        else if (email == "")
-        {
-            Debug.LogError("email field is empty");
-        }
-        else if (passwordRegisterField.text != confirmPasswordRegisterField.text)
+        if (passwordRegisterField.text != confirmPasswordRegisterField.text)
         {
             Debug.LogError("Password does not match");
         }
@@ -154,80 +165,43 @@ public class FirebaseAuthManager : MonoBehaviour
             if (registerTask.Exception != null)
             {
                 Debug.LogError(registerTask.Exception);
-
-                FirebaseException firebaseException = registerTask.Exception.GetBaseException() as FirebaseException;
-                AuthError authError = (AuthError)firebaseException.ErrorCode;
-
-                string failedMessage = "Registration Failed! Because ";
-                switch (authError)
-                {
-                    case AuthError.InvalidEmail:
-                        failedMessage += "Email is invalid";
-                        break;
-                    case AuthError.WrongPassword:
-                        failedMessage += "Wrong Password";
-                        break;
-                    case AuthError.MissingEmail:
-                        failedMessage += "Email is missing";
-                        break;
-                    case AuthError.MissingPassword:
-                        failedMessage += "Password is missing";
-                        break;
-                    default:
-                        failedMessage = "Registration Failed";
-                        break;
-                }
-
-                Debug.Log(failedMessage);
             }
             else
             {
-                user = registerTask.Result.User; // Updated this line
+                user = registerTask.Result.User;
 
                 UserProfile userProfile = new UserProfile { DisplayName = name };
-
                 var updateProfileTask = user.UpdateUserProfileAsync(userProfile);
 
                 yield return new WaitUntil(() => updateProfileTask.IsCompleted);
 
-                if (updateProfileTask.Exception != null)
+                if (updateProfileTask.Exception == null)
                 {
-                    // Delete the user if user update failed
-                    user.DeleteAsync();
+                    // Adicionar aqui a lógica de armazenamento dos dados adicionais no Firestore ou Realtime Database
+                    Debug.Log("Registration and Profile Update Successful");
 
-                    Debug.LogError(updateProfileTask.Exception);
-
-                    FirebaseException firebaseException = updateProfileTask.Exception.GetBaseException() as FirebaseException;
-                    AuthError authError = (AuthError)firebaseException.ErrorCode;
-
-                    string failedMessage = "Profile update Failed! Because ";
-                    switch (authError)
+                    // Exemplo de como enviar dados para Firestore (implementar separadamente)
+                    FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+                    DocumentReference docRef = db.Collection("voluntarios").Document(user.UserId);
+                    Dictionary<string, object> userAdditionalInfo = new Dictionary<string, object>
                     {
-                        case AuthError.InvalidEmail:
-                            failedMessage += "Email is invalid";
-                            break;
-                        case AuthError.WrongPassword:
-                            failedMessage += "Wrong Password";
-                            break;
-                        case AuthError.MissingEmail:
-                            failedMessage += "Email is missing";
-                            break;
-                        case AuthError.MissingPassword:
-                            failedMessage += "Password is missing";
-                            break;
-                        default:
-                            failedMessage = "Profile update Failed";
-                            break;
-                    }
+                        { "nome", name },
+                        { "data_nascimento", birthDate },
+                        { "sexo", gender },
+                        { "morada", address },
+                        { "carta_conducao", drivingLicense },
+                        { "especialidade", specialty },
+                        { "email", email }
+                    };
+                    docRef.SetAsync(userAdditionalInfo);
 
-                    Debug.Log(failedMessage);
+                    UIManager.Instance.OpenLoginPanel(); // Ajuste conforme a sua lógica de UI
                 }
                 else
                 {
-                    Debug.Log("Registration Successful Welcome " + user.DisplayName);
-                    UIManager.Instance.OpenLoginPanel();
+                    // Se a atualização do perfil falhar, considere deletar o usuário ou tratar o erro de outra forma
+                    Debug.LogError(updateProfileTask.Exception);
                 }
-                
             }
         }
     }
